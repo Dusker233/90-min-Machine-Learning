@@ -1,0 +1,82 @@
+\documentclass[normal, cyan, en]{elegantnote}
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage{color}
+\usepackage{cancel}
+\usepackage{minted}
+\usepackage{tikz}
+\usepackage{algorithmic, algorithm}
+\usepackage{xeCJK}
+\usepackage{xeCJKfntef}
+\usepackage{xcolor}
+\usepackage{amsmath, amsfonts, scalerel}
+\def\Z{{\mathbb Z}}
+\def\R{{\mathbb R}}
+\def\C{{\mathbb C}}
+\def\Q{{\mathbb Q}}
+\def\du{{^{\circ}}}
+\definecolor{cool}{RGB}{120,67,131}
+\newcommand{\limit}[2]{\lim\limits_{#1 \to #2}}
+\newcommand{\Sum}[3]{\sum\limits_{#1 = #2}^{#3}}
+\newcommand{\roma}[1]{\uppercase\expandafter{\romannumeral#1}}
+\newcommand{\QED}{\square}
+\newcommand{\stirling}[2]{\begin{Bmatrix}#1\\#2\end{Bmatrix}}
+\newcommand*{\dif}{\mathop{}\!\mathrm{d}}
+\usetikzlibrary{arrows, graphs}
+% \renewcommand{\textbf}[1]{{\color{red} #1}}
+\newcommand{\textbff}[1]{{\color{cool} #1}}
+\newcommand\stress[1]{\textbff{\CJKunderdot{#1}}}
+\definecolor{custom}{RGB}{128,111,147}
+\setcounter{tocdepth}{2}
+\DeclareMathOperator*{\btie}{\scalerel*{\bowtie}{\textstyle\sum}}
+\title{90 分钟急救机器学习}
+\date{\today}
+
+\newminted{sql}{linenos, breaklines, frame = single, mathescape, texcl = true, escapeinside = ||}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{梯度下降}
+梯度下降是一个最优化算法，规范形式为：
+
+\begin{algorithm}[H]
+    \renewcommand{\algorithmicrequire}{\textbf{Input:}}
+	\renewcommand{\algorithmicensure}{\textbf{Output:}}
+    \caption{梯度下降法}
+    \begin{algorithmic}[1]
+        \REQUIRE $\boldsymbol{\theta}$，$J(\boldsymbol{\theta})$，$\alpha$，其中 $\boldsymbol{\theta}$ 中存储的为随机值
+        \ENSURE $\boldsymbol{\theta}$ 为使 $J(\boldsymbol{\theta})$ 取到最小值时的参数
+        \WHILE {$\boldsymbol{\theta}$ 不收敛}
+            \FOR {$j = 0$ to $n$}
+                \STATE $\theta_j := \theta_j - \nabla J(\theta_j)$
+            \ENDFOR
+        \ENDWHILE
+    \end{algorithmic}
+\end{algorithm}
+
+\input{线性回归}
+
+\input{逻辑回归}
+
+\input{Regularization}
+
+\input{softmax}
+
+\input{决策树}
+
+\input{PCA}
+
+\input{聚类}
+
+\input{SVM}
+
+\input{NN}
+
+\input{CNN}
+
+\input{AE}
+\end{document}

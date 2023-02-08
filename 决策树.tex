@@ -1,0 +1,183 @@
+\section{决策树}
+\subsection{基本算法流程}
+\begin{algorithm}
+    \renewcommand{\algorithmicrequire}{\textbf{Input:}}
+	\renewcommand{\algorithmicensure}{\textbf{Output:}}
+    \caption{决策树学习基本算法 $\text{TreeGenerate(D, A)}$}
+    \begin{algorithmic}[1]
+        \REQUIRE 训练集 $D = \left\{(x_1, y_1), (x_2, y_2), \dots, (x_m, y_m)\right\}$ \\ \qquad 属性集 $A = \left\{a_1, a_2, \dots, a_d\right\}$
+        \ENSURE 以 node 为根结点的一棵决策树
+        \STATE 生成结点 node;
+        \IF{$D$ 中样本全属于同一类别 $C$}
+        \STATE 将 node 标记为叶结点，其类别标记为 $D$ 中样本数最多的类;
+        \STATE \textbf{return}
+        \ENDIF
+        \IF{$A = \varnothing$ \textbf{OR} $D$ 中样本在 $A$ 上取值相同}
+        \STATE 将 node 标记为叶结点，其类别标记为 $D$ 中样本最多的类;
+        \STATE \textbf{return}
+        \ENDIF
+        \STATE 从 $A$ 中选择最优划分属性 $a_*$;
+        \FOR{$a_*$ 中的每一个值 $a_*^v$}
+        \STATE 为 node 生成一个分支;
+        \STATE 令 $D_v$ 表示 $D$ 中在 $a_*$ 上取值为 $a_*^v$ 的样本子集;
+        \IF{$D_v$ 为空}
+        \STATE 将分支结点标记为叶结点，其类别标记为 $D$ 中样本最多的类;
+        \STATE \textbf{return}
+        \ELSE
+        \STATE 以 $\text{TreeGenerate}\left(D_v, A \backslash \left\{a_*\right\}\right)$ 为分支结点;
+        \ENDIF
+        \ENDFOR
+    \end{algorithmic}
+\end{algorithm}
+\subsection{划分选择}
+\subsubsection{信息增益}
+令信息熵
+\begin{equation}
+    \operatorname{Ent}(D) = -\sum\limits_{k=1}^{|\mathcal{Y}|}p_k\log _2(p_k)
+\end{equation}
+假设离散属性 $a$ 有 $V$ 个可能的取值 $\left\{a^1, a^2, \dots, a^V\right\}$，如果使用属性 $a$ 为样本集进行划分，则会产生 $V$ 个分支结点，
+其中第 $v$ 个分支结点包含了 $D$ 中所有属性为 $a^v$ 的样本，记为 $D^v$。我们用下式表示属性 $a$ 对样本集 $D$ 进行划分所获得的“信息增益”：
+\begin{equation}
+    \operatorname{Gain}(D, a) = \operatorname{Ent}(D) - \sum\limits_{v = 1}^V
+    {\dfrac{|D^v|}{|D|}\operatorname{Ent}(D^v)}
+\end{equation}
+
+选择最优属性时我们可以采用属性 $a_* = \underset{a \in A}{\arg\max}\operatorname{Gain}(D, a)$。
+
+\subsubsection{增益率}
+由于信息增益准则对\textbf{可取值数目较多}的属性有所偏好，为了避免这种影响，
+由 Quinlan 在 1993 年提出的 C4.5 决策树算法不直接使用信息增益，而是使用“增益率”来选择最优划分属性，定义为：
+\begin{equation}
+    \operatorname{Gain\_ratio}(D, a) = \dfrac{\operatorname{Gain}(D, a)}{\operatorname{IV}(a)}
+\end{equation}
+其中，$\operatorname{IV}(a)$ 表示属性 $a$ 的“固有值”。
+属性 $a$ 的可能取值数目越多（即 $V$ 越大），则 $\operatorname{IV}(a)$ 的值通常会越大：
+\begin{equation}
+    \operatorname{IV}(a) = -\sum\limits_{v = 1}^V
+    {\dfrac{|D^v|}{|D|}\log _2\dfrac{|D^v|}{|D|}}
+\end{equation}
+
+需注意的是，增益率准则对\textbf{可取值数目较少}的属性有所偏好，因此，
+C4.5 算法采用了一种启发式的做法：先找出信息增益高于平均水平的属性，再从其中选择增益率最高的。
+
+\subsubsection{基尼指数}
+数据集 $D$ 的纯度可用基尼值来度量：
+\begin{equation}
+    \begin{aligned}
+        \operatorname{Gini}(D) &= \sum\limits_{k=1}^{|\mathcal Y|}{\sum\limits_{k' \neq k}p_kp_{k'}} \\
+        &=1 - \sum\limits_{k=1}^{|\mathcal Y|} p_k^2
+        \end{aligned}
+\end{equation}
+直观上，$\operatorname{Gini}(D)$ 反映了从数据集 $D$ 中随机抽取两个样本，
+其类别标记不一致的概率，所以 $\operatorname{Gini}(D)$ 越小，则数据集 $D$ 的纯度越高。
+
+属性 $a$ 的基尼指数定义为
+\begin{equation}
+    \operatorname{Gini\_index}(D, a) = \sum\limits_{v = 1}^V
+    {\dfrac{|D^v|}{|D|}\operatorname{Gini}(D^v)}
+\end{equation}
+
+我们选择划分后基尼指数最小的属性作为最优划分属性，即 $a_* = \underset{a \in A}{\arg\min}\operatorname{Gini\_index}(D, a)$。
+
+\subsection{剪枝}
+剪枝分为“预剪枝”和“后剪枝”两种。
+
+“预剪枝”是指在决策树生成过程中，对每个结点在划分前进行估计，如果划分后泛化能力无法提升，则停止划分并将当前结点标记为叶结点；
+
+“后剪枝”则是先从训练集生成一棵完整的决策树，然后自下向上地对非叶结点进行考察，
+如果把该结点的子树替换为叶结点能提高泛化能力，则将该子树替换为叶结点。
+
+对比：
+\begin{itemize}
+    \item 时间开销：
+    \begin{itemize}
+        \item 预剪枝：训练时间开销降低，测试时间开销降低
+        \item 后剪枝：训练时间开销增加，测试时间开销降低
+    \end{itemize}
+    \item 过/欠拟合风险：
+    \begin{itemize}
+        \item 预剪枝：过拟合风险降低，欠拟合风险增加
+        \item 后剪枝：过拟合风险降低，欠拟合风险基本不变
+    \end{itemize}
+    \item 泛化性能：后剪枝通常优于预剪枝
+\end{itemize}
+
+\subsection{连续值处理}
+设给定样本集 $D$ 和连续属性 $a$，$a$ 在 $D$ 上出现了 $n$ 个不同的取值，
+从小到大排序后记为 $\left\{a^1, a^2, \dots, a^n\right\}$。
+
+我们可考察包含 $n - 1$ 个元素的候选划分点集合（即将区间的中点作为候选划分点）
+\begin{equation}
+    T_a = \left\{\dfrac{a^i + a^{i + 1}}{2}, 1 \leq i \leq n - 1\right\}
+\end{equation}
+
+对于信息增益，我们可以稍加改造得到属性连续时的公式：
+\begin{equation}
+    \begin{aligned}
+        \operatorname{Gain}(D, a) &= \underset{t \in T_a}{\max} \operatorname{Gain}(D, a, t) \\
+        &= \underset{t \in T_a}{\max} \operatorname{Ent}(D) - \sum\limits_{\lambda \in \left\{-, +\right\}}{\dfrac{|D_t^\lambda|}{|D|}\operatorname{Ent}(D_t^\lambda)}
+        \end{aligned}
+\end{equation}
+
+\subsection{缺失值处理}
+缺失值的处理涉及到两个问题：
+
+（1）如何在属性值缺失的情况下进行划分属性选择？ 
+
+（2）给定划分属性，若样本在该属性上的值缺失，如何对样本进行划分？
+
+给定训练集 $D$ 和属性 $a$，令 $\tilde{D}$ 表示 $D$ 中在属性 $a$ 上没有缺失值的样本子集。对于问题（1），我们可以仅通过 $\tilde{D}$ 来判断属性的优劣。
+
+假定 $a$ 有 $V$ 个可取值 $\left\{a^1, a^2, \dots, a^V\right\}$，令 $\tilde{D}^v$ 表示 $\tilde{D}$ 
+中在属性 $a$ 上取值为 $a^v$ 的样本子集，$\tilde{D}_k$ 表示 $\tilde{D}$ 
+中属于第 $k$ 类（$k = 1, 2, \dots, |\mathcal Y|$）的样本子集，则显然有
+\begin{equation}
+    \begin{aligned}
+        \tilde{D} &= \bigcup\limits_{k=1}^{|\mathcal Y|} \tilde{D}_k \\
+        \tilde{D} &= \bigcup\limits_{v=1}^V \tilde{D}^v
+        \end{aligned}
+\end{equation}
+
+假定我们为每个样本 $x$ 赋予一个权重 $w_x$，并定义
+\begin{equation}
+    \begin{aligned}
+        \rho &= \dfrac{\sum_{x \in \tilde{D}}w_x}{\sum_{x \in D} w_x} \\
+        \tilde{p}_k &= \dfrac{\sum_{x \in \tilde{D}_k} w_x}{\sum_{x \in D} w_x}\quad (1 \leq k \leq |\mathcal Y|) \\
+        \tilde{r}_v &= \dfrac{\sum_{x \in \tilde{D}^v} w_x}{\sum_{x \in D} w_x}\quad (1 \leq v \leq V)
+        \end{aligned}
+\end{equation}
+
+$\rho$ 表示无缺失值样本所占的比例，$\tilde{p}_k$ 表示无缺失值样本中第 $k$ 类所占比例，
+$\tilde{r}_v$ 表示无缺失值样本中在属性 $a$ 上取值为 $a^v$ 的样本所占的比例。
+
+基于上述定义，我们可将信息增益的计算式推广为
+\begin{equation}
+  \begin{aligned}
+\operatorname{Gain}(D, a) &= \rho \times \operatorname{Gain}(\tilde{D}, a) \\
+&= \rho \times \left(\operatorname{Ent}\left(\tilde{D}\right) - \sum\limits_{v=1}^V{\tilde{r}_v\operatorname{Ent}\left(\tilde{D}^v\right)}\right)
+\end{aligned}  
+\end{equation}
+
+其中
+\begin{equation}
+    \operatorname{Ent}(\tilde{D}) = -\sum\limits_{k=1}^{|\mathcal Y|}{\tilde{p}_k \log_2 \tilde{p}_k}
+\end{equation}
+
+对问题（2）：
+
+\begin{itemize}
+    \item 若样本 $x$ 在划分属性 $a$ 上的取值已知，则将 $x$ 划入与其取值对应的子结点，且样本权值在子结点中保持为 $w_x$；
+    \item 若样本 $x$ 在划分属性 $a$ 上的取值未知，则将 $x$ 同时划入所有子结点，
+    且样本权值在与属性值 $a^v$ 对应的子结点中调整为 $\tilde{r}_v \cdot w_x$。
+\end{itemize}
+
+\subsection{从“树”到“规则”，从“单变量”到“多变量”}
+
+可以发现，一颗决策树对应着一个“规则集”，每个从根结点到叶结点的分支路径对应于一条规则。
+将决策树转化为一个规则集可以改善可理解性，进一步提升泛化能力。
+
+在每个非叶结点仅考虑一个划分属性时得到的决策树称为“\textbf{单变量决策树}”，产生的是“轴平行”分类面，
+当分类边界比较复杂时，单变量决策树必须使用很多段划分才能获得较好的近似，此时决策树会相当复杂，时间开销会很大。
+若能够使用斜的划分边界，则模型将大为简化，“多变量决策树”可以做到这一点。
+在该模型中，每个非叶结点不再是仅对某个属性，而是\textbf{构造一个线性分类器}，如此决策树模型可以大为简化。
+更复杂地，我们可以在结点上嵌入神经网络或其他非线性模型，获得更优的决策边界。

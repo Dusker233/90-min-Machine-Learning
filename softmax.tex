@@ -1,0 +1,66 @@
+\section{Softmax 回归}
+
+Softmax 回归用于多分类问题，如果分类的类别是互斥的，适于选择 softmax 回归分类器。
+如果类别之间不是互斥的，而是相互掺杂，则 k 个 logistic 回归分类器更加合适。当 $k = 2$ 时，Softmax 回归退化为逻辑回归。
+
+\subsection{假设函数}
+\begin{equation}
+    h_\theta\left(x^{(i)}\right) = 
+\begin{bmatrix}
+p(y^{(i)}=1 \mid x^{(i)};\theta \\
+p(y^{(i)}=2 \mid x^{(i)};\theta \\
+\vdots \\
+p(y^{(i)}=k \mid x^{(i)};\theta)
+\end{bmatrix}
+= \dfrac{1}{\sum_{j=1}^k e^{\theta_j^\mathrm Tx^{(i)}}}
+\begin{bmatrix}
+e^{\theta_1^\mathrm Tx^{(i)}} \\
+e^{\theta_2^\mathrm Tx^{(i)}} \\
+\vdots \\
+e^{\theta_k^\mathrm Tx^{(i)}}
+\end{bmatrix}
+\end{equation}
+
+其中 $\theta_1, \theta_2, \cdots, \theta_k \in \mathbb{R}^{n+1}$。
+
+\subsection{代价函数}
+若令 $\boldsymbol{\theta} =
+\begin{bmatrix}
+\theta_1^\mathrm T \\
+\theta_2^\mathrm T \\
+\vdots \\
+\theta_k^\mathrm T
+\end{bmatrix}_{k \times (n + 1)}$，则代价函数为
+\begin{equation}
+    J(\boldsymbol{\theta}) = -\dfrac 1m \left(\sum_{i=1}^m\sum_{j=1}^k1\left[y^{(i)} = j\right]\log 
+    \dfrac{e^{\theta_j^\mathrm Tx^{(i)}}}{\sum_{l=1}^k e^{\theta_l^\mathrm Tx^{(i)}}}\right)
+\end{equation}
+
+其中 $1[x]$ 为示性函数，表示 $x$ 为真时为 $1$，否则为 $0$。
+
+\subsection{梯度下降}
+在 Softmax 回归中，将 $x$ 归类为类别 $j$ 的概率为
+\begin{equation}
+    p\left(y^{(i)}=j \mid x^{(i)} ; \theta\right)
+    =\frac{e^{\theta_{j}^{\mathrm T} x^{(i)}}}{\sum_{l=1}^{k} e^{\theta_{l}^{\mathrm T} x^{(i)}}}
+\end{equation}
+
+则梯度公式为
+\begin{equation}
+    \nabla_{\theta_{j}} J(\boldsymbol\theta)=-\frac{1}{m} 
+    \sum_{j=1}^{m}1\left[x^{(i)}\left(\left[y^{(i)}=j\right]-p\left(y^{(i)}=j \mid x^{(i)} ; \theta\right)\right)\right]
+\end{equation}
+
+\subsection{权重衰减}
+所谓权重衰减，事实上就是正则化。
+\begin{equation}
+    J(\boldsymbol{\theta}) = -\dfrac 1m \left(\sum_{i=1}^m\sum_{j=1}^k1\left[y^{(i)} = j\right]\log \dfrac{e^{\theta_j^\mathrm Tx^{(i)}}}{\sum_{l=1}^k 
+    e^{\theta_l^\mathrm Tx^{(i)}}}\right) + \textcolor{red}{\dfrac \lambda 2\sum_{i=1}^k\sum_{j=0}^n\theta_{ij}^2}
+\end{equation}
+
+此时梯度公式为
+\begin{equation}
+    \nabla_{\theta_{j}} J(\boldsymbol\theta)=-\frac{1}{m} \sum_{j=1}^{m}
+    \left[x^{(i)}\left(1\left[y^{(i)}=j\right]-p\left(y^{(i)}=j \mid x^{(i)} ; \theta\right)\right)\right] 
+    + \textcolor{red}{\lambda \theta_j}
+\end{equation}

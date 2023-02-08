@@ -1,0 +1,236 @@
+\section{支持向量机}
+\subsection{基本概念}
+\begin{itemize}
+    \item 支持向量：距离超平面最近的训练样本点；
+    \item 间隔：两个异类支持向量之间的距离 $\gamma = \frac 2{\|\boldsymbol{w}\|}$
+\end{itemize}
+
+\subsection{不等式约束的最优化问题 - KKT 条件}
+此类最优化问题的标准形式为
+\begin{equation}
+    \begin{aligned}
+        \min_{\boldsymbol{x}}&\  f(\boldsymbol{x}) \\
+        & \text{s.t. } g_i(\boldsymbol{x}) \leq 0, h_j(\boldsymbol{x}) = 0\quad i \in [1, m], j \in [1, p]
+        \end{aligned}
+\end{equation}
+
+其中 $g_i(x)$ 为不等式约束，$h_j(x)$ 为等式约束，$m$ 和 $p$ 为约束个数。
+
+定义拉格朗日函数
+\begin{equation}
+    L(\boldsymbol{x}, \boldsymbol{\lambda}, \boldsymbol{\mu}) 
+    = f(\boldsymbol x) + \sum_{i=1}^m \lambda_i g_i(\boldsymbol x) + \sum_{k=1}^p \mu_k h_k(\boldsymbol x)
+\end{equation}
+
+如果存在一组解 $\boldsymbol{x}^*$ 满足
+\begin{equation}
+    \begin{cases}
+        \nabla_x L = \dfrac{\partial L}{\partial x_i} = 0 \\
+        h_k(\boldsymbol x^*) = 0,\ k = 1, 2, \cdots, p \\
+        g_j(\boldsymbol x^*) \leq 0 \\
+        \mu_j \geq 0 \\
+        \mu_j g_j(\boldsymbol x^*) = 0,\ j = 1, 2, \cdots, m
+        \end{cases}
+\end{equation}
+
+则这组解 $\boldsymbol x^*$ 为满足条件的一组可行解。
+
+\subsection{硬间隔 SVM}
+hard-margin SVM 的最优化问题为
+\begin{equation}
+    \begin{aligned}
+        \underset{\boldsymbol{w}, b}{\arg\min}&\  \dfrac 12 \|\boldsymbol{w}\|^2 \\
+        &\text{s.t.}\  y_i(\boldsymbol{w}^\mathrm T\boldsymbol{x}_i + b) \geq 1,\ i = 1, 2, \dots, m
+    \end{aligned}
+\end{equation}
+
+构造拉格朗日函数
+\begin{equation}
+    L(\boldsymbol w, b, \boldsymbol \alpha) = \dfrac 12 \boldsymbol w^\mathrm T\boldsymbol w 
+    +\sum_{i=1}^m \alpha_i(1 - y_i(\boldsymbol w^\mathrm T\boldsymbol x_i + b))
+\end{equation}
+
+分别对 $\boldsymbol w$、$b$ 求偏导可得
+\begin{equation}
+    \begin{aligned}
+        \dfrac{\partial L}{\partial \boldsymbol w} &= 0 \Longrightarrow \boldsymbol w 
+        = \sum_{i=1}^m \alpha_iy_i\boldsymbol x_i \\
+        \dfrac {\partial L}{\partial b} &= 0 \Longrightarrow \sum_{i = 1}^m \alpha_iy_i = 0
+    \end{aligned}
+\end{equation}
+
+将上述两式代入拉格朗日函数得
+\begin{equation}
+    \begin{aligned}
+        L(\alpha) &= \dfrac 12 \boldsymbol w^\mathrm T\boldsymbol w + \sum_{i=1}^m \alpha_i - \sum_{i=1}^m \alpha_iy_i\boldsymbol w^\mathrm T \boldsymbol x_i - \sum_{i=1}^m \alpha_iy_ib \\
+        &= \dfrac 12 \left(\sum_{i=1}^m \alpha_iy_i \boldsymbol x_i^\mathrm T\right)\left(\sum_{j=1}^m \alpha_jy_j\boldsymbol x_j\right) + \sum_{i=1}^m \alpha_i - \sum_{i=1}^m \alpha_iy_i\left(\sum_{j=1}^m \alpha_jy_j \boldsymbol x_j^\mathrm T\right) \boldsymbol x_i \\
+        &= \sum_{i=1}^m \alpha_i - \dfrac 12 \sum_{i=1}^m\sum_{j=1}^m \alpha_i\alpha_jy_iy_j \boldsymbol x_i^\mathrm T \boldsymbol x_j
+        \end{aligned}
+\end{equation}
+
+结合上面对 $b$ 的偏导得到的约束，我们得到原最优化问题的对偶问题
+\begin{equation}
+    \begin{aligned}
+        \underset{\boldsymbol \alpha}{\max}& \sum_{i=1}^m \alpha_i - \dfrac 12 \sum_{i=1}^m\sum_{j=1}^m \alpha_i\alpha_jy_iy_j \boldsymbol x_i^\mathrm T \boldsymbol x_j \\
+        &\text{s.t. } \sum_{i=1}^m \alpha_iy_i = 0, \alpha_i \geq 0,\ i = 1, 2, \cdots, m
+    \end{aligned}
+\end{equation}
+
+略去上式必定存在最大值的证明，通过工具包计算得到 $\boldsymbol \alpha$ 后，可得到 $\boldsymbol w$ 和 $b$，从而得到分离超平面。
+
+\subsection{核化法}
+在现实任务中，原始的样本空间可能是非线性可分的，即找不到一个能正确划分两类样本的超平面。
+
+此时我们通过核化法将数据映射到一个更高维的\textbf{特征空间}，使得样本在特征空间中线性可分，从而完成分类任务。
+\begin{theorem}
+    如果原始空间是有限维的，那么必定存在一个高维特征空间使样本线性可分。
+\end{theorem}
+
+设样本 $\boldsymbol x$ 映射后的向量为 $\phi(\boldsymbol x)$，
+划分超平面为 $f(\boldsymbol x) = \boldsymbol w^\mathrm T \phi(\boldsymbol x) + b$，则原始的最优化问题变为
+\begin{equation}
+    \begin{aligned}
+        \underset{\boldsymbol w, b}{\min}&\  \dfrac 12 \|\boldsymbol w\|^2 \\
+        &\text{s.t. } y_i(\boldsymbol w^\mathrm T\phi(\boldsymbol x_i) + b) \geq 1,\ i = 1, 2, \cdots, m
+    \end{aligned}
+\end{equation}
+
+其对偶问题为
+\begin{equation}
+    \begin{aligned}
+        \underset{\boldsymbol \alpha}{\max}&\  \sum_{i = 1}^m \alpha_i - \dfrac 12 \sum_{i=1}^{m} \sum_{j=1}^{m} \alpha_{i} \alpha_{j} y_{i} y_{j} \phi\left(\boldsymbol{x}_{i}\right)^{\mathrm{T}} \phi\left(\boldsymbol{x}_{j}\right) \\
+        & \text{s.t. } \sum_{i = 1}^m \alpha_iy_i = 0, \alpha_i \geq 0, i = 1, 2, \cdots, m
+    \end{aligned}
+\end{equation}
+
+预测方程为
+\begin{equation}
+    f(\boldsymbol x) = \boldsymbol w^\mathrm T\phi(\boldsymbol x) + b 
+    = \sum_{i = 1}^m\alpha_iy_i\phi(\boldsymbol x_i)^\mathrm T\phi(\boldsymbol x)+b
+\end{equation}
+
+注意到高维向量维数可能很高，且高维向量只以内积 $\phi(\boldsymbol{x}_i)^\mathrm T\phi(\boldsymbol{x}_j)$ 出现，
+引入核函数 $\kappa(\boldsymbol x_i, \boldsymbol x_j) = \phi(\boldsymbol x_i)^\mathrm T \phi(\boldsymbol x_j)$，
+通过此我们可以绕过显式考虑特征映射和计算高维内积困难的问题。
+
+\begin{table}[H]
+    \caption{常用的核函数}
+    \centering
+    \begin{tabular}{|c|c|c|}
+        \hline
+        名称 & 表达式 & 参数 \\
+        \hline
+        线性核 & $\kappa(\boldsymbol x_i, \boldsymbol x_j) = \boldsymbol x_i^\mathrm T\boldsymbol x_j$ & \\
+        \hline
+        多项式核 & $\kappa(\boldsymbol x_i, \boldsymbol x_j) = (\boldsymbol x_i^\mathrm T\boldsymbol x_j + r)^d$ & $r$ 为偏移量，$d \geq 1$ 为多项式次数 \\
+        \hline
+        高斯核 & $\kappa(\boldsymbol x_i, \boldsymbol x_j) = \exp\left(-\dfrac{\|\boldsymbol x_i - \boldsymbol x_j\|^2}{2\sigma^2}\right)$ & $\sigma > 0$ 为高斯核的带宽 \\
+        \hline
+        拉普拉斯核 & $\kappa(\boldsymbol x_i, \boldsymbol x_j) = \exp\left(-\dfrac{\|\boldsymbol x_i - \boldsymbol x_j\|}{\sigma}\right)$ & $\sigma > 0$ \\
+        \hline
+        Sigmoid 核 & $\kappa(\boldsymbol x_i, \boldsymbol x_j) = \tanh(\beta\boldsymbol x_i^\mathrm T\boldsymbol x_j + \theta)$ & $\beta > 0$，$\theta < 0$ \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\begin{example}
+    假设 $r = 1$，$d = 2$，则多项式核函数为
+\begin{equation}
+    \begin{aligned}
+        (a \times b + 1)^2 &= (a \times b + 1)(a \times b + 1) \\
+        &= a^2b^2 + 2ab + 1 \\
+        &= (\sqrt 2a, a^2, 1) \cdot (\sqrt 2b, b^2, 1)
+    \end{aligned}
+\end{equation}
+
+映射函数为
+\begin{equation}
+    \begin{cases}
+        \phi: \mathbb R^1 \to \mathbb R^3 \\
+        (x) \to (z_1, z_2, z_3) = (\sqrt 2x, x^2, 1)
+    \end{cases}
+\end{equation}
+\end{example}
+
+\begin{example}
+    当映射函数 $\phi(\boldsymbol x) = (x_1^2, \sqrt2x_1x_2, x_2^2)$ 时，多项式核函数的 $r$ 和 $d$ 分别是多少？
+
+写做两个向量内积形式为
+\begin{equation}
+    \begin{aligned}
+        \phi(\boldsymbol x)\phi(\boldsymbol x') &= x_1x_1'^2 + 2x_1x_2x_1'x_2'+x_2x_2'^2 \\
+        &= (x_1x_1' + x_2x_2')^2 \\
+        &= (\boldsymbol x \times \boldsymbol x')^2
+        \end{aligned}
+\end{equation}
+
+所以 $r = 0$，$d = 2$。
+\end{example}
+
+根据核函数我们可以推导得到特征空间中两个向量间的距离和夹角：
+\begin{itemize}
+    \item 两向量间的距离为
+    \begin{equation}
+        \begin{aligned}
+            \|\phi(\boldsymbol x) - \phi(\boldsymbol x')\| &= (\phi(\boldsymbol x) - \phi(\boldsymbol x'))^\mathrm T(\phi(\boldsymbol x) - \phi(\boldsymbol x')) \\
+            &= \phi(\boldsymbol x)^\mathrm T\phi(\boldsymbol x) - \phi(\boldsymbol x)^\mathrm T\phi(\boldsymbol x') - \phi(\boldsymbol x')^\mathrm T\phi(\boldsymbol x) + \phi(\boldsymbol x')^\mathrm T\phi(\boldsymbol x') \\
+            &= \kappa(\boldsymbol x, \boldsymbol x) - \kappa(\boldsymbol x, \boldsymbol x') - \kappa(\boldsymbol x', \boldsymbol x) + \kappa(\boldsymbol x', \boldsymbol x') \\
+            &= \kappa(\boldsymbol x, \boldsymbol x) - 2\kappa(\boldsymbol x, \boldsymbol x') + \kappa(\boldsymbol x', \boldsymbol x')
+            \end{aligned}
+    \end{equation}
+    \item 两向量间的夹角余弦为
+    \begin{equation}
+        \begin{aligned}
+            \cos \theta &= \dfrac{\phi(\boldsymbol x) \cdot \phi(\boldsymbol x')}{\|\phi(\boldsymbol x)\|\|\phi(\boldsymbol x')\|} \\
+            &= \dfrac{\phi(\boldsymbol x)^\mathrm T\phi(\boldsymbol x')}{\sqrt{\phi(\boldsymbol x)^\mathrm T\phi(\boldsymbol x)}\sqrt{\phi(\boldsymbol x')^\mathrm T\phi(\boldsymbol x')}} \\
+            &= \dfrac{\kappa(\boldsymbol x, \boldsymbol x')}{\sqrt{\kappa(\boldsymbol x, \boldsymbol x)}\sqrt{\kappa(\boldsymbol x', \boldsymbol x')}}
+            \end{aligned}
+    \end{equation}
+\end{itemize}
+
+映射函数 $\phi$ 不是必须的，只有核矩阵
+\begin{equation}
+    \begin{bmatrix}
+        \kappa(x_1, x_1) & \kappa(x_1, x_2) & \cdots & \kappa(x_1, x_n) \\
+        \kappa(x_2, x_1) & \kappa(x_2, x_2) & \cdots & \kappa(x_2, x_n) \\
+        \vdots & \vdots & \vdots & \vdots \\
+        \kappa(x_n, x_1) & \kappa(x_n, x_2) & \cdots & \kappa(x_n, x_n)
+        \end{bmatrix}
+\end{equation}
+
+是半正定时，$\kappa(\cdot, \cdot)$ 才是一个可使用的核函数；
+给定一个 $\phi$ 也能找到其对应的 $\kappa$，给定一个 $\kappa$ 也能找到一个对应的特征空间使得 $\kappa$ 对应空间中的向量内积。
+
+\begin{definition}
+    半正定：给定一个大小为 $n \times n$ 的实对称矩阵 $A$，
+    若对于任意长度为 $n$ 的向量 $x$，有 $x^\mathrm TAx\geq 0$ 恒成立，则称矩阵 $A$ 是一个半正定矩阵。
+\end{definition}
+
+\subsection{软间隔 SVM}
+由于 hard-margin SVM 无法容忍无法线性可分的情况，可能在确定超平面时出现过拟合的情况，
+于是我们允许一部分异类样本落入另一侧的区域，形成 soft-margin SVM。此时最优化问题可写为
+\begin{equation}
+    \begin{aligned}
+        \underset{\boldsymbol w, b, \boldsymbol \xi}{\min}&\  \dfrac 12 \boldsymbol w^\mathrm T \boldsymbol w + C \sum_{i = 1}^m \xi_i, C > 0 \\
+        &\text{s.t. } \xi_i \geq 0, y_i(\boldsymbol w^\mathrm T \boldsymbol x_i + b) \geq 1 - \xi_i,\ i = 1, 2, \cdots, m
+    \end{aligned}
+\end{equation}
+
+其中 $\xi_i$ 被称为\textbf{松弛变量}。当 $C$ 增大时，$\sum \xi_i$ 必定减小，$\xi_i$ 必定减小，则由限制可知间隔减小。
+
+上问题的拉格朗日函数为
+\begin{equation}
+    L(\boldsymbol w, b, \boldsymbol \xi, \boldsymbol \alpha, \boldsymbol \beta) = 
+    \dfrac 12 \boldsymbol w^\mathrm T \boldsymbol w + C\sum_{i = 1}^m \xi_i 
+    + \sum_{i = 1}^m \alpha_i[1 - \xi_i - y_i(\boldsymbol w^\mathrm T \boldsymbol x_i + b)] 
+    - \sum_{i = 1}^m \beta_i \xi_i
+\end{equation}
+
+令上式分别对 $\boldsymbol w$、$b$ 和 $\boldsymbol \xi$ 求偏导可得
+\begin{equation}
+    \begin{aligned}
+        \dfrac {\partial L}{\partial \boldsymbol w} &= 0 \Longrightarrow \sum_{i = 1}^m \alpha_iy_i\boldsymbol x_i = \boldsymbol w \\
+        \dfrac {\partial L}{\partial b} &= 0 \Longrightarrow \sum_{i = 1}^m \alpha_iy_i = 0 \\
+        \dfrac {\partial L}{\partial \xi_i} &= 0 \Longrightarrow C - \alpha_i - \beta_i =0 \rightarrow 0 \leq \alpha_i, \beta_i \leq C
+     \end{aligned}
+\end{equation}

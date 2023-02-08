@@ -1,0 +1,48 @@
+\section{数据降维-主成分分析}
+\subsection{PCA 算法}
+主成分分析（Principal Component Analysis，PCA）是最常用的一种降维方法。
+
+对于正交属性空间中的样本点，如果用一个超平面对所有样本进行恰当地表达，它应当具有下列性质：
+
+\begin{itemize}
+    \item 最近重构性：样本点到这个超平面的距离都足够近；
+    \item 最大可分性：样本点到这个超平面上的投影能尽可能分开。
+\end{itemize}
+
+\begin{algorithm}[H]
+    \renewcommand{\algorithmicrequire}{\textbf{Input:}}
+	\renewcommand{\algorithmicensure}{\textbf{Output:}}
+    \caption{PCA 算法}
+    \begin{algorithmic}[1]
+        \REQUIRE 样本集 $D = \left\{\boldsymbol{x}_1, \boldsymbol{x}_2, \cdots, \boldsymbol{x}_m\right\}$, 低维空间维数 $d'$
+        \ENSURE 投影矩阵 $W = \left\{\boldsymbol{w}_1, \boldsymbol{w}_2, \cdots, \boldsymbol{w}_{d'}\right\}$
+        \STATE 对所有样本进行中心化：$\boldsymbol{x}_i \leftarrow \boldsymbol{x}_i - \frac 1m \sum_{i=1}^m \boldsymbol{x}_i$
+        \STATE 计算样本的协方差矩阵 $\mathbf{XX}^\mathrm T$
+        \STATE 对协方差矩阵 $\mathbf{XX}^\mathrm T$ 做特征值分解
+        \STATE 选取前 $d'$ 个最大的特征值对应的特征向量作为投影矩阵 $W$
+    \end{algorithmic}
+\end{algorithm}
+
+\subsection{特征值分解}
+特征值分解：
+
+\begin{itemize}
+    \item 先求 $A$ 的特征多项式 $f(\lambda) = |A - \lambda E| = |A - \Lambda|$，
+    其中 $\Lambda$ 是一个主对角线上全为 $\lambda$ 的方阵；
+    \item 求特征方程 $|A - \lambda E| = 0$ 的全部解，他们就是 $A$ 的全部特征值；
+    \item  对于一个特征值 $\lambda_i$，求出相应的特征方程组 $(A - \Lambda_i)X = 0$ 的一组特解
+     $\xi_1, \xi_2, \cdots, \xi_t$，则这组解对应的向量即为一个特征向量。
+\end{itemize}
+
+降维后低维空间的维数 $d'$ 通常是由用户事先指定，
+或通过在 $d'$ 值不同的低维空间中对 k 近邻分类器（或其他开销较小的学习器）进行交叉验证来选取较好的 $d'$ 值。
+对 PCA，还可以还可从重构的角度设置一个重构阈值，例如 $t = 95\%$，然后选取使下式成立的最小 $d'$ 值：
+\begin{equation}
+   \dfrac{\sum_{i=1}^{d'} \lambda_i}{\sum_{i=1}^d{\lambda_i}} \geq t 
+\end{equation}
+
+
+PCA 仅需保留 $\mathbf W$ 与样本的均值向量，即可通过简单的向量减法和矩阵-向量乘法将新样本投影至低维空间中。
+
+降维虽然会导致信息的损失，但一方面舍弃这些信息后能\textbf{使得样本的采样密度增大}，
+另一方面，当数据受到噪声影响时，最小的特征值所对应的特征向量往往与噪声有关，\textbf{舍弃可以起到去噪效果}。
