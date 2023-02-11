@@ -14,7 +14,7 @@
 
 其中，$\operatorname{avg}(C)$ 表示簇 $C$ 内样本间的平均距离，$\operatorname{diam}(C)$ 表示簇 $C$ 内样本间的最远距离，
 $d_{\min}(C_i, C_j)$ 表示簇 $C_i$ 和 $C_j$ 最近样本间的距离，$d_{\text{cen}}(C_i, C_j)$ 表示簇 $C_i$ 和 $C_j$ 中心点间的距离，
-$\mu_i$ 表示簇 $C$ 的中心点。
+$\mu_i$ 表示簇 $C$ 的中心点（质心）。
 
 \begin{itemize}
     \item DB 指数：
@@ -62,7 +62,7 @@ $E$ 值在一定程度上刻画了簇内样本围绕簇均值向量的紧密程�
         \REQUIRE 样本集 $D = \left\{\boldsymbol{x}_1, \boldsymbol{x}_2, \cdots, \boldsymbol{x}_m\right\}$，聚类簇数 $k$
         \ENSURE 簇划分 $\mathcal C = \left\{C_1, C_2, \dots, C_k\right\}$
         \STATE 从 $D$ 中随机选择 $k$ 个样本作为初始均值向量 $\left\{\boldsymbol{\mu}_1, \boldsymbol{\mu}_2, \cdots, \boldsymbol{\mu}_k\right\}$
-        \WHILE{当前均值向量被更新且不是第一次进入循环}
+        \WHILE{当前均值向量被更新或第一次进入循环}
         \STATE 令 $C_i = \varnothing(1 \leq i \leq k)$
         \FOR{$j = 1, 2, \cdots, m$}
             \STATE 计算样本 $\boldsymbol{x}_j$ 与各均值向量 $\boldsymbol{\mu}_i(1 \leq i \leq k)$ 的距离：
@@ -108,7 +108,7 @@ DBSCAN 算法是一种著名的密度聚类算法，它基于一组“邻域”�
     \centering\includegraphics[scale = 0.5]{DBSCAN.png}
 \end{figure}
 
-DBSCAN 将“簇”定义为：有密度可达关系导出的最大的密度相连样本集合。
+DBSCAN 将“簇”定义为：由密度可达关系导出的最大的密度相连样本集合。
 
 形式化地，给定邻域参数 $(\epsilon, MinPts)$，簇 $C \subseteq D$ 是满足以下性质的非空样本子集：
 \begin{itemize}

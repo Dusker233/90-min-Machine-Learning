@@ -6,7 +6,7 @@ Sigmoid 函数为
     g(x) = \dfrac{1}{1 + e^{-x}}
 \end{equation}
 
-性质：$g(x) \in (0, 1)$，$g(0) = \frac 12$，$\lim\limits_{x \to -\infty}g(x) = 0$，$\lim\limits_{x \to +\infty}g(x) = 1$。
+性质：$g(x) \in (0, 1)$，$g(0) = \dfrac 12$，$\lim\limits_{x \to -\infty}g(x) = 0$，$\lim\limits_{x \to +\infty}g(x) = 1$。
 
 \subsection{预测函数}
 \begin{equation}
@@ -18,6 +18,8 @@ Sigmoid 函数为
     J(\boldsymbol{\theta}) = -\dfrac{1}{m}\sum_{i=1}^m\left[y^{(i)}\log h_\theta(\boldsymbol{x}^{(i)}) + (1 - y^{(i)})\log(1 - h_\theta(\boldsymbol{x}^{(i)}))\right]
 \end{equation}
 
+此代价函数称为\textbf{对数似然损失函数}，也称为\textbf{交叉熵损失函数}。
+
 此时梯度公式为
 \begin{equation}
     \nabla J(\theta_j) = \dfrac{1}{m}\sum_{i=1}^m(h_\theta(\boldsymbol{x}^{(i)}) - y^{(i)})\boldsymbol{x}^{(i)}_j
@@ -26,3 +28,5 @@ Sigmoid 函数为
 \subsection{多分类问题}
 对于多分类问题，可以使用一对多的方法，即对于每个类别 $k$，训练一个逻辑回归分类器。
 对于一个输入，只需找到输出最大的那个分类器，并将其对应的类别作为输入的类别。
+
+对于第 $i$ 个分类器，输出的意义是\textbf{输入 $x$ 属于第 $i$ 类的概率为 $h^i_\theta(x)$}。

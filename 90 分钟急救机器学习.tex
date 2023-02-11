@@ -31,6 +31,7 @@
 \DeclareMathOperator*{\btie}{\scalerel*{\bowtie}{\textstyle\sum}}
 \title{90 分钟急救机器学习}
 \date{\today}
+\version{2.0}
 
 \newminted{sql}{linenos, breaklines, frame = single, mathescape, texcl = true, escapeinside = ||}
 
@@ -52,7 +53,7 @@
         \ENSURE $\boldsymbol{\theta}$ 为使 $J(\boldsymbol{\theta})$ 取到最小值时的参数
         \WHILE {$\boldsymbol{\theta}$ 不收敛}
             \FOR {$j = 0$ to $n$}
-                \STATE $\theta_j := \theta_j - \nabla J(\theta_j)$
+                \STATE $\theta_j := \theta_j - \alpha\nabla J(\theta_j)$
             \ENDFOR
         \ENDWHILE
     \end{algorithmic}
